@@ -1,0 +1,90 @@
+/* css/style.css — IMAGE 1:1 + LIGHT OVERLAY (FULL FILE) */
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+/* phone container */
+.card {
+  width: 360px;
+  height: 640px;
+  position: relative;
+  border-radius: 48px;
+  overflow: hidden;
+
+  /* 1:1 background image */
+  background: url("../assets/tapet.jpg") center center / cover no-repeat;
+
+  box-shadow: 0 40px 120px rgba(0,0,0,0.85);
+}
+
+/* LIGHT vignette (less fade) */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(0,0,0,0.06),
+    rgba(0,0,0,0.22)
+  );
+}
+
+/* ===== HIDE TEXT (image already contains it) ===== */
+.badge,
+.wallet,
+.footer,
+.btn {
+  color: transparent;
+  background: transparent;
+  border: none;
+  text-shadow: none;
+}
+
+/* keep layout / hitboxes */
+.badge,
+.wallet,
+.footer,
+.btn {
+  position: relative;
+  z-index: 1;
+}
+
+/* CLICK ZONES ONLY */
+.btn {
+  width: 210px;
+  height: 62px;
+  cursor: default;
+}
+
+/* exact positions from mockup */
+.btn.weekly {
+  position: absolute;
+  top: 255px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.btn.monthly {
+  position: absolute;
+  top: 335px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.btn.history {
+  position: absolute;
+  top: 415px;
+  left: 50%;
+  transform: translateX(-50%);
+}
