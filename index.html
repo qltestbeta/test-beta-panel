@@ -1,6 +1,28 @@
+<!-- /lottery-ui/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TEST / BETA</title>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+
 <style>
-html,body{margin:0;padding:0;height:100%;background:#000;font-family:Arial,Helvetica,sans-serif;}
-.stage{height:100%;display:flex;align-items:center;justify-content:center;overflow:auto;}
+html,body{
+margin:0;
+padding:0;
+height:100%;
+background:#000;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+.stage{
+height:100%;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:auto;
+}
 
 /* PC */
 .phone{
@@ -29,9 +51,20 @@ transform:translateX(-50%);
 }
 
 /* positions */
-.weekly{top:274px;transform:translateX(-50%) translateX(-55px);}
-.monthly{top:352px;transform:translateX(-50%) translateX(35px);}
-.history{top:452px;transform:translateX(-50%) translateX(-45px);}
+.weekly{
+top:274px;
+transform:translateX(-50%) translateX(-55px);
+}
+
+.monthly{
+top:352px;
+transform:translateX(-50%) translateX(35px);
+}
+
+.history{
+top:452px;
+transform:translateX(-50%) translateX(-45px);
+}
 
 .log{
 position:absolute;
@@ -44,3 +77,193 @@ word-break:break-all;
 z-index:10;
 }
 </style>
+</head>
+
+<body>
+
+<div class="stage">
+
+<div class="phone">
+
+<div class="btn weekly" onclick="buyWeekly()"></div>
+
+<div class="btn monthly" onclick="buyMonthly()"></div>
+
+<div class="btn history" onclick="openHistory()"></div>
+
+<div class="log" id="log"></div>
+
+</div>
+</div>
+
+<script>
+
+const CHAIN_ID_HEX = "0x13882";
+const CHAIN_ID_DEC = 80002;
+
+const LOTTERY =
+"0x378D6B8CD73f0AF6ec9a5208e4ba16e00A3AF55a";
+
+const MOCK_USDT =
+"0xB491F91d95078B0279639bc68e48A4e2bF696270";
+
+const SCAN_BASE =
+"https://amoy.polygonscan.com";
+
+const LOTTERY_ABI = [
+"function buyWeekly() external",
+"function buyMonthly() external"
+];
+
+const ERC20_ABI = [
+"function approve(address spender,uint256 amount) external returns (bool)",
+"function allowance(address owner,address spender) external view returns (uint256)"
+];
+
+function setLog(t){
+document.getElementById("log").textContent=t;
+}
+
+async function getSignerAndAddress(){
+
+if(!window.ethereum){
+throw new Error("METAMASK_NOT_FOUND");
+}
+
+await window.ethereum.request({
+method:"wallet_switchEthereumChain",
+params:[{chainId:CHAIN_ID_HEX}]
+});
+
+const provider =
+new ethers.BrowserProvider(window.ethereum);
+
+await provider.send("eth_requestAccounts",[]);
+
+const signer = await provider.getSigner();
+
+const addr = await signer.getAddress();
+
+const net = await provider.getNetwork();
+
+if(Number(net.chainId)!==CHAIN_ID_DEC){
+throw new Error("WRONG_NETWORK");
+}
+
+return {provider,signer,addr};
+}
+
+async function ensureAllowance(addr,signer){
+
+const usdt =
+new ethers.Contract(
+MOCK_USDT,
+ERC20_ABI,
+signer
+);
+
+const current =
+await usdt.allowance(addr,LOTTERY);
+
+if(current>0n){
+return null;
+}
+
+const tx =
+await usdt.approve(
+LOTTERY,
+ethers.MaxUint256
+);
+
+setLog("APPROVE tx: "+tx.hash);
+
+await tx.wait();
+
+setLog("APPROVE OK");
+
+return tx.hash;
+}
+
+async function buy(which){
+
+try{
+
+const {signer,addr} =
+await getSignerAndAddress();
+
+await ensureAllowance(addr,signer);
+
+const lottery =
+new ethers.Contract(
+LOTTERY,
+LOTTERY_ABI,
+signer
+);
+
+const tx =
+which==="weekly"
+? await lottery.buyWeekly()
+: await lottery.buyMonthly();
+
+setLog(
+which.toUpperCase()+" tx: "+tx.hash
+);
+
+await tx.wait();
+
+setLog(
+which.toUpperCase()+" OK"
+);
+
+}catch(e){
+
+setLog(
+"ERR: "+
+(
+e?.shortMessage ||
+e?.reason ||
+e?.message ||
+e
+)
+);
+
+}
+
+}
+
+async function buyWeekly(){
+return buy("weekly");
+}
+
+async function buyMonthly(){
+return buy("monthly");
+}
+
+function openHistory(){
+
+window.open(
+`${SCAN_BASE}/address/${LOTTERY}`,
+"_blank",
+"noopener,noreferrer"
+);
+
+}
+
+if(window.ethereum){
+
+window.ethereum.on(
+"accountsChanged",
+()=>window.location.reload()
+);
+
+window.ethereum.on(
+"chainChanged",
+()=>window.location.reload()
+);
+
+}
+
+</script>
+
+</body>
+</html>
