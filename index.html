@@ -8,8 +8,12 @@
 
 <style>
 html,body{margin:0;padding:0;height:100%;background:#000;font-family:Arial,Helvetica,sans-serif;}
-.stage{height:100%;display:flex;align-items:center;justify-content:center;zoom:1.6 }
-.phone{position:relative;width:700px;height:1400px;background:url("./assets/tapet.jpg") center/cover no-repeat;}
+.stage{height:100%;display:flex;align-items:center;justify-content:center;overflow:auto;}
+.phone{position:relative;width:420px;height:840px;background:url("./assets/tapet.jpg") center/cover no-repeat;}
+
+@media (max-width: 700px){
+  .phone{width:460px;height:920px;}
+}
 
 .btn{
   position:absolute;
